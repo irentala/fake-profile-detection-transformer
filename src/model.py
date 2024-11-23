@@ -1,12 +1,10 @@
-# src/model.py
+import torch
+import torch.nn as nn
 
-import torch  # PyTorch library for tensor operations and neural networks
-import torch.nn as nn  # PyTorch module for neural network layers
-
-# Transformer-based model
-class TransformerKeystrokeModel(nn.Module):
+# Transformer-based encoder model
+class TransformerKeystrokeEncoder(nn.Module):
     def __init__(self, input_dim, model_dim, num_heads, num_layers):
-        super(TransformerKeystrokeModel, self).__init__()
+        super(TransformerKeystrokeEncoder, self).__init__()
         self.embedding = nn.Linear(input_dim, model_dim)  # Embedding layer to project input features to a higher dimension
         self.transformer = nn.Transformer(d_model=model_dim, nhead=num_heads, num_encoder_layers=num_layers, batch_first=True)  # Transformer encoder
         self.fc = nn.Linear(model_dim, model_dim)  # Fully connected layer
@@ -21,14 +19,14 @@ class TransformerKeystrokeModel(nn.Module):
         x = self.pool(x).squeeze(-1)  # Apply pooling and squeeze the last dimension
         return x  # Return the output
 
-# Triplet loss function
-class TripletLoss(nn.Module):
-    def __init__(self, margin=1.0):
-        super(TripletLoss, self).__init__()
-        self.margin = margin  # Margin for the triplet loss
+# Bi-Encoder model
+class BiEncoderModel(nn.Module):
+    def __init__(self, input_dim, model_dim, num_heads, num_layers):
+        super(BiEncoderModel, self).__init__()
+        self.encoder_a = TransformerKeystrokeEncoder(input_dim, model_dim, num_heads, num_layers)  # Encoder for Keystroke A
+        self.encoder_b = TransformerKeystrokeEncoder(input_dim, model_dim, num_heads, num_layers)  # Encoder for Keystroke B
 
-    def forward(self, anchor, positive, negative):
-        pos_dist = torch.nn.functional.pairwise_distance(anchor, positive)  # Pairwise distance between anchor and positive
-        neg_dist = torch.nn.functional.pairwise_distance(anchor, negative)  # Pairwise distance between anchor and negative
-        loss = torch.mean(torch.relu(pos_dist - neg_dist + self.margin))  # Compute the triplet loss
-        return loss  # Return the loss
+    def forward(self, keystroke_a, keystroke_b):
+        embedding_a = self.encoder_a(keystroke_a)  # Get embedding for Keystroke A
+        embedding_b = self.encoder_b(keystroke_b)  # Get embedding for Keystroke B
+        return embedding_a, embedding_b

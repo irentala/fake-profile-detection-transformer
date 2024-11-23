@@ -1,6 +1,7 @@
 # src/evaluate.py
 
 import torch  # PyTorch library for tensor operations and neural networks
+import torch
 
 # Evaluation function
 def evaluate_model(model, known_genuine_embeddings, test_dataloader, threshold, device):
@@ -11,12 +12,15 @@ def evaluate_model(model, known_genuine_embeddings, test_dataloader, threshold, 
         for data, labels in test_dataloader:  # Iterate over batches of test data
             data, labels = data.to(device), labels.to(device)  # Move data and labels to the specified device
             data = data.float()  # Convert data to float32
-            embeddings = model(data)  # Compute embeddings for test sequences
-            for embedding in embeddings:  # Iterate over embeddings
-                distances = [torch.nn.functional.pairwise_distance(embedding.unsqueeze(0), genuine_embedding.unsqueeze(0)).item() for genuine_embedding in known_genuine_embeddings]  # Compute distances to known genuine embeddings
-                min_distance = min(distances)  # Get the minimum distance
-                print(f"Distances: {distances}, Min Distance: {min_distance}")  # Print the distances for debugging
-                if min_distance < threshold:  # Classify as genuine if distance is below the threshold
+            embeddings_a, _ = model(data, data)  # Compute embeddings for test sequences
+            for embedding in embeddings_a:
+                # Compute distances to known genuine embeddings
+                distances = [torch.nn.functional.pairwise_distance(embedding.unsqueeze(0), genuine_embedding.unsqueeze(0)).item() for genuine_embedding in known_genuine_embeddings] # Compute distances to known genuine embeddings
+                min_distance = min(distances)
+                # Print the distances for debugging
+                print(f"Distances: {distances}, Min Distance: {min_distance}")
+                # Classify as genuine if distance is below the threshold, otherwise as imposter
+                if min_distance < threshold: # Classify as genuine if distance is below the threshold
                     correct += 1
                 total += 1
     accuracy = correct / total  # Compute the accuracy
