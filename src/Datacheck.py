@@ -144,27 +144,35 @@ def add_session_ids(df):
 
     return df
 
+
 def calculate_press_release_times(df):
     # Create new columns for press and release times
     df['press_time'] = None
     df['release_time'] = None
 
-    # Iterate over the DataFrame and calculate press and release times
+    # Dictionary to track the latest press times by key
     key_press_times = {}
-    for index, row in df.iterrows():
-        if row['Direction'] == 'P':
-            # Store the press time for the key
-            key_press_times[row['Key']] = row['Timestamp']
-        elif row['Direction'] == 'R' and row['Key'] in key_press_times:
-            # Calculate the press and release times
-            press_time = key_press_times.pop(row['Key'])
-            release_time = row['Timestamp'] - press_time
 
-            # Update the DataFrame with the calculated times
-            df.at[index, 'press_time'] = press_time
-            df.at[index, 'release_time'] = release_time
+    for index, row in df.iterrows():
+        key = row['Key']
+        timestamp = row['Timestamp']
+
+        if row['Direction'] == 'P':  # If it's a press event
+            key_press_times[key] = timestamp  # Track the press time
+            df.at[index, 'press_time'] = timestamp  # Store the press time
+
+        elif row['Direction'] == 'R':  # If it's a release event
+            # Release time is directly the timestamp of the release event
+            if key in key_press_times:
+                df.at[index, 'press_time'] = key_press_times[key]  # Use the last recorded press time
+                df.at[index, 'release_time'] = timestamp  # Set the release time
+                del key_press_times[key]  # Remove the key as it is now processed
+            else:
+                # Handle the case where a release event is found without a prior press
+                df.at[index, 'release_time'] = timestamp  # Store release time, but no corresponding press
 
     return df
+
 
 # Function to process and save a single file
 def process_file(input_file, output_folder):
