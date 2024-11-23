@@ -9,6 +9,9 @@ This repository contains code for a keystroke dynamics project using a Transform
   - `model.py`: Definition of the Transformer model and triplet loss.
   - `train.py`: Training loop.
   - `evaluate.py`: Evaluation function.
+  - 'keystroke_analysis_tool.py' : This script processes raw keystroke logging data, 
+     ensuring its integrity, cleaning the data, and generating enhanced insights such as 
+     session IDs and key press/release times. 
 - `data/`: Directory for storing keystroke data files.
 - `main.py`: Main script for running training and evaluation.
 - `requirements.txt`: List of dependencies.
@@ -31,6 +34,10 @@ This repository contains code for a keystroke dynamics project using a Transform
 4. Run the main script:
     ```sh
     python main.py
+    ```
+5. To run keystroke_analysis_tool.py script
+   ```sh
+   python3 keystroke_analysis_tool.py [Data File Path]
     ```
 
 ## License
